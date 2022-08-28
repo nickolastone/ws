@@ -54,6 +54,9 @@ var (
 		RejectionStatus(http.StatusBadRequest),
 		RejectionReason(fmt.Sprintf("handshake error: bad %q header", headerSecVersion)),
 	)
+	ErrOk = RejectConnectionError(
+		RejectionStatus(http.StatusOK),
+	)
 )
 
 // ErrMalformedResponse is returned by Dialer to indicate that server response
@@ -351,6 +354,7 @@ type Upgrader struct {
 	// Note that if present, it will be written in any result of handshake.
 	Header HandshakeHeader
 
+	Hijack func(conn io.ReadWriteCloser, r *bufio.Reader, w *bufio.Writer, method, uri string, major, minor int) (success bool)
 	// OnRequest is a callback that will be called after request line
 	// successful parsing.
 	//
@@ -464,6 +468,14 @@ func (u Upgrader) Upgrade(conn io.ReadWriter) (hs Handshake, err error) {
 		0: u.Header,
 	}
 
+	if hijack := u.Hijack; hijack != nil {
+		if tc, ok := conn.(io.ReadWriteCloser); ok {
+			hs.Hijack = hijack(tc, br, bw, btsToString(req.method), btsToString(req.uri), req.major, req.minor)
+			if hs.Hijack {
+				return
+			}
+		}
+	}
 	// Parse and check HTTP request.
 	// As RFC6455 says:
 	//   The client's opening handshake consists of the following parts. If the
