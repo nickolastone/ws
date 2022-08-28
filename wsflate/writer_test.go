@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/gobwas/httphead"
-	"github.com/gobwas/ws"
+	"github.com/nickolastone/ws"
 )
 
 func TestWriter(t *testing.T) {

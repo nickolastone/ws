@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/gobwas/ws"
+	"github.com/nickolastone/ws"
 )
 
 func TestDebugUpgrader(t *testing.T) {
